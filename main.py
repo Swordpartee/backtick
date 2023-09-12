@@ -1,7 +1,5 @@
 import math
 import pygame as py
-import random
-import time
 
 FPSCLOCK = py.time.Clock()
 FPS = 60
@@ -20,10 +18,9 @@ kMaxPlayerSpeed = 4.5
 kPlayerJumpPower = -5
 kPlayerMaxJumps = 3
 
-
 # Define block constants
 kBlockRadius = 26
-blockLoc = [(416, 650), (390, 676), (442, 624), (468, 598), (494, 572), (520, 546), (676, 442), (702, 442), (728, 442), (858, 364), (910, 364), (884, 364), (962, 364), (936, 364)]
+blockLoc = []
 blocks = []
 
 # Define game constants
@@ -43,6 +40,8 @@ cWhite = (255,255,255)
 cBlue = (0,0,255)
 cRed = (255,0,0)
 
+timeshift = []
+
 # Create button mappings
 buttonMap = {
     py.K_LEFT : False,
@@ -60,6 +59,7 @@ window = py.display.set_mode((kScreenWidth, kScreenHeight))
 player = py.Rect(kPlayerOffset,kScreenHeight, kPlayerRadius - kPlayerOffset * 2, kPlayerRadius)
 
 playerSize = (kPlayerRadius,kPlayerRadius)
+
 char1r = py.image.load("char1r.png")
 char2r = py.image.load("char2r.png")
 char3r = py.image.load("char3r.png")
@@ -68,9 +68,23 @@ char1l = py.image.load("char1l.png")
 char2l = py.image.load("char2l.png")
 char3l = py.image.load("char3l.png")
 char4l = py.image.load("char4l.png")
+
 blockSize = (kBlockRadius,kBlockRadius)
 blockTexture = py.image.load("block.png")
 
+kRCADict = {
+    1 : py.transform.scale(char1r, playerSize),
+    2 : py.transform.scale(char2r, playerSize),
+    3 : py.transform.scale(char3r, playerSize),
+    4 : py.transform.scale(char4r, playerSize)
+}
+
+kLCADict = {
+    1 : py.transform.scale(char1l, playerSize),
+    2 : py.transform.scale(char2l, playerSize),
+    3 : py.transform.scale(char3l, playerSize),
+    4 : py.transform.scale(char4l, playerSize)
+}
 char1r = py.transform.scale(char1r, playerSize)
 char2r = py.transform.scale(char2r, playerSize)
 char3r = py.transform.scale(char3r, playerSize)
@@ -79,6 +93,7 @@ char1l = py.transform.scale(char1l, playerSize)
 char2l = py.transform.scale(char2l, playerSize)
 char3l = py.transform.scale(char3l, playerSize)
 char4l = py.transform.scale(char4l, playerSize)
+
 blockTexture = py.transform.scale(blockTexture,blockSize)
 
 class block:
@@ -212,7 +227,6 @@ def spawnblock():
     location = [loc[0],loc[1]]
     location[0] = kBlockRadius * math.floor(location[0] / kBlockRadius)
     location[1] = kBlockRadius * math.floor(location[1] / kBlockRadius)
-    print(kBlockRadius * math.floor(location[1] / kBlockRadius))
     blockLoc.append((location[0],location[1]))
     blocks.append(block(location[0],location[1],kBlockRadius,cWhite))
 
@@ -222,7 +236,7 @@ def setPlayerPose():
     # Stop player movement if they are on the edge of the screen
     if (playerGrounded() and playerAcceleration[1] > 0) or (player.y == 0 and playerAcceleration[1] < 0):
         playerAcceleration[1] = 0
-    if (playerAcceleration[0] < 0 and player.x == 0) or (playerAcceleration[0] > 0 and player.x == kScreenWidth - kPlayerRadius):
+    if (playerAcceleration[0] < 0 and player.x == 0) or (playerAcceleration[0] > 0 and player.x == kScreenWidth - (kPlayerRadius - kPlayerOffset * 2)):
         playerAcceleration[0] = 0
     
     # Move player pose
@@ -230,7 +244,7 @@ def setPlayerPose():
     if isColliding():
         collisionBlock = blocks[player.collidelist(blocks)]
         if playerAcceleration[0] > 0:
-            player.x = collisionBlock.x -(kPlayerRadius - kPlayerOffset * 2)
+            player.x = collisionBlock.x - (kPlayerRadius - kPlayerOffset * 2)
             playerAcceleration[0] = 0
         elif playerAcceleration[0] < 0:
             player.x = collisionBlock.x + collisionBlock.size
@@ -247,7 +261,20 @@ def setPlayerPose():
             playerAcceleration[1] = 0
                 
     player.y = clamp(player.y,0,kScreenHeight - kPlayerRadius)
-    player.x = clamp(player.x,0,kScreenWidth - kPlayerRadius)
+    player.x = clamp(player.x,0,kScreenWidth - (kPlayerRadius - kPlayerOffset * 2))
+    
+def backInTime():
+    i = 1
+    if len(timeshift) > 100:
+        while i < 100:
+            timeRev(i)
+    else:
+        while i < len(timeshift):
+            timeRev(i)
+
+def timeRev(i):
+    player.x = timeshift[-i][0][0]
+    player.x = timeshift[-i][0][1]
 
 # Creates game screen
 def drawScreen():
@@ -255,8 +282,12 @@ def drawScreen():
     # Set screen color
     window.fill(cBlack)
     
-    # Draw player
-    animatePlayer()
+    window.blit(playerPNG,(player.x - kPlayerOffset, player.y))
+    
+    timeshift.append([(player.x - kPlayerOffset, player.y),playerPNG])
+    
+    if len(timeshift) > 100:
+        timeshift.pop(0)
     
     for i in blocks:
         i.draw()
@@ -268,37 +299,28 @@ def animatePlayer():
     
     global walkAnime
     global moving
+    global playerPNG
     
     if playerGrounded():
+        
+        animeSpeed = 8
+        
         if playerAcceleration[0] > 0:
             moving = "right"
-            if walkAnime == 0:
-                playerPNG = char1r
-            elif walkAnime == 1:
-                playerPNG = char2r
-            elif walkAnime == 2:
-                playerPNG = char3r
-            elif walkAnime == 3:
-                playerPNG = char4r
+            playerPNG = kRCADict[math.ceil(walkAnime / animeSpeed)]
         elif playerAcceleration[0] < 0:
             moving = "left"
-            if walkAnime == 0:
-                playerPNG = char1l
-            elif walkAnime == 1:
-                playerPNG = char2l
-            elif walkAnime == 2:
-                playerPNG = char3l
-            elif walkAnime == 3:
-                playerPNG = char4l
-        elif moving == "right":
-            playerPNG = char1r
-        elif moving == "left":
-            playerPNG = char1l
+            playerPNG = kLCADict[math.ceil(walkAnime / animeSpeed)]
             
-        if playerGrounded():
-            if animationTicks % 5 == 0:
-                walkAnime += 1
-                walkAnime %= 4
+        else:  
+            if moving == "right":
+                playerPNG = kRCADict[1]
+            else:
+                playerPNG = kLCADict[1]
+                
+        walkAnime %= 4 * animeSpeed
+        walkAnime += 1
+            
     else:
         if playerAcceleration[0] > 0:
             moving = "right"
@@ -322,8 +344,6 @@ def animatePlayer():
                 playerPNG = char4l
             else:
                 playerPNG = char2l
-                
-    window.blit(playerPNG,(player.x - kPlayerOffset, player.y))
 
 # Inits the list of blocks
 def initBlocks():
@@ -345,10 +365,17 @@ while True:
     
     getButtons()
 
-    calcMovement()
+    if not buttonMap[py.K_LSHIFT]:
+        calcMovement()
 
-    setPlayerPose()
+        setPlayerPose()
+        
+        animatePlayer()
     
+    else:
+        
+        backInTime()
+        
     reset()
 
     drawScreen()
