@@ -11,18 +11,18 @@ kScreenHeight = 700
 kScreenWidth = 1000
 
 # Define player constants
-kPlayerRadius = 200
+kPlayerRadius = 50
 
 kPlayerSpeed = 0.3
 kMaxPlayerSpeed = 4.5
 
 kPlayerJumpPower = -5
-kPlayerMaxJumps = 1
+kPlayerMaxJumps = 3
 
 
 # Define block constants
 kBlockRadius = 25
-blockLoc = [(500,675),(525,675),(525,650),(10,600)]
+blockLoc = [(0,0),(500,675),(500,650),(525,675),(525,650)]
 blocks = []
 
 # Define game constants
@@ -328,4 +328,3 @@ while True:
     reset()
 
     drawScreen()
-    
