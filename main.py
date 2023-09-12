@@ -11,7 +11,8 @@ kScreenHeight = 700
 kScreenWidth = 1000
 
 # Define player constants
-kPlayerRadius = 50
+kPlayerRadius = 150
+kPlayerOffset = 33
 
 kPlayerSpeed = 0.3
 kMaxPlayerSpeed = 4.5
@@ -21,8 +22,8 @@ kPlayerMaxJumps = 3
 
 
 # Define block constants
-kBlockRadius = 25
-blockLoc = [(0,0),(500,675),(500,650),(525,675),(525,650)]
+kBlockRadius = 26
+blockLoc = [(416, 650), (390, 676), (442, 624), (468, 598), (494, 572), (520, 546), (676, 442), (702, 442), (728, 442), (858, 364), (910, 364), (884, 364), (962, 364), (936, 364)]
 blocks = []
 
 # Define game constants
@@ -56,7 +57,7 @@ buttonMap = {
 window = py.display.set_mode((kScreenWidth, kScreenHeight))
 
 # Create player
-player = py.Rect(0,kScreenHeight, kPlayerRadius, kPlayerRadius)
+player = py.Rect(kPlayerOffset,kScreenHeight, kPlayerRadius - kPlayerOffset * 2, kPlayerRadius)
 
 playerSize = (kPlayerRadius,kPlayerRadius)
 char1r = py.image.load("char1r.png")
@@ -126,7 +127,7 @@ def jump():
     
     global jumps
     
-    if buttonMap[py.K_SPACE] and jumps < kPlayerMaxJumps:
+    if buttonMap[py.K_SPACE] and jumps <= kPlayerMaxJumps:
         jumps = jumps + 1
         buttonMap[py.K_SPACE] = False
         playerAcceleration[1] = kPlayerJumpPower
@@ -181,6 +182,7 @@ def getButtons():
     for event in py.event.get():
         # if quit, quit
         if event.type == py.QUIT:
+            print(stripList(blockLoc))
             py.quit()
             quit()
             
@@ -193,6 +195,26 @@ def getButtons():
         if event.type == py.KEYUP:
             if event.key in buttonMap:
                 buttonMap[event.key] = False
+                
+        if event.type == py.MOUSEBUTTONDOWN:
+                spawnblock()
+                
+def stripList(startlist):
+    stripedListed = []
+    for i in startlist:
+        if i not in stripedListed:
+            stripedListed.append(i)
+    
+    return(stripedListed)
+
+def spawnblock():
+    loc = py.mouse.get_pos()
+    location = [loc[0],loc[1]]
+    location[0] = kBlockRadius * math.floor(location[0] / kBlockRadius)
+    location[1] = kBlockRadius * math.floor(location[1] / kBlockRadius)
+    print(kBlockRadius * math.floor(location[1] / kBlockRadius))
+    blockLoc.append((location[0],location[1]))
+    blocks.append(block(location[0],location[1],kBlockRadius,cWhite))
 
 # Moves player pose based on acceleration
 def setPlayerPose():
@@ -204,12 +226,11 @@ def setPlayerPose():
         playerAcceleration[0] = 0
     
     # Move player pose
-    player.x += playerAcceleration[0] * (kPlayerRadius/100)
-    
+    player.x += playerAcceleration[0] * ((kPlayerRadius - kPlayerOffset * 2)/100)
     if isColliding():
         collisionBlock = blocks[player.collidelist(blocks)]
         if playerAcceleration[0] > 0:
-            player.x = collisionBlock.x - kPlayerRadius
+            player.x = collisionBlock.x -(kPlayerRadius - kPlayerOffset * 2)
             playerAcceleration[0] = 0
         elif playerAcceleration[0] < 0:
             player.x = collisionBlock.x + collisionBlock.size
@@ -252,27 +273,28 @@ def animatePlayer():
         if playerAcceleration[0] > 0:
             moving = "right"
             if walkAnime == 0:
-                window.blit(char1r,(player.x,player.y))
+                playerPNG = char1r
             elif walkAnime == 1:
-                window.blit(char2r,(player.x,player.y))
+                playerPNG = char2r
             elif walkAnime == 2:
-                window.blit(char3r,(player.x,player.y))
+                playerPNG = char3r
             elif walkAnime == 3:
-                window.blit(char4r,(player.x,player.y))
+                playerPNG = char4r
         elif playerAcceleration[0] < 0:
             moving = "left"
             if walkAnime == 0:
-                window.blit(char1l,(player.x,player.y))
+                playerPNG = char1l
             elif walkAnime == 1:
-                window.blit(char2l,(player.x,player.y))
+                playerPNG = char2l
             elif walkAnime == 2:
-                window.blit(char3l,(player.x,player.y))
+                playerPNG = char3l
             elif walkAnime == 3:
-                window.blit(char4l,(player.x,player.y))
+                playerPNG = char4l
         elif moving == "right":
-            window.blit(char1r,(player.x,player.y))
+            playerPNG = char1r
         elif moving == "left":
-            window.blit(char1l,(player.x,player.y))
+            playerPNG = char1l
+            
         if playerGrounded():
             if animationTicks % 5 == 0:
                 walkAnime += 1
@@ -281,25 +303,27 @@ def animatePlayer():
         if playerAcceleration[0] > 0:
             moving = "right"
             if playerAcceleration[1] < 0:
-                window.blit(char4r,(player.x,player.y))
+                playerPNG = char4r
             else:
-                window.blit(char2r,(player.x,player.y))
+                playerPNG = char2r
         elif playerAcceleration[0] < 0:
             moving = "left"
             if playerAcceleration[1] < 0:
-                window.blit(char4l,(player.x,player.y))
+                playerPNG = char4l
             else:
-                window.blit(char2l,(player.x,player.y))
+                playerPNG = char2l
         elif moving == "right":
             if playerAcceleration[1] < 0:
-                window.blit(char4r,(player.x,player.y))
+                playerPNG = char4r
             else:
-                window.blit(char2r,(player.x,player.y))
+                playerPNG = char2r
         elif moving == "left":
             if playerAcceleration[1] < 0:
-                window.blit(char4l,(player.x,player.y))
+                playerPNG = char4l
             else:
-                window.blit(char2l,(player.x,player.y))
+                playerPNG = char2l
+                
+    window.blit(playerPNG,(player.x - kPlayerOffset, player.y))
 
 # Inits the list of blocks
 def initBlocks():
