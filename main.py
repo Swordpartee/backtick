@@ -11,7 +11,7 @@ kScreenHeight = 700
 kScreenWidth = 1000
 
 # Define player constants
-kPlayerRadius = 50
+kPlayerRadius = 150
 
 kPlayerSpeed = 0.3
 kMaxPlayerSpeed = 4.5
@@ -274,7 +274,7 @@ def animatePlayer():
         elif moving == "left":
             window.blit(char1l,(player.x,player.y))
         if playerGrounded():
-            if animationTicks % 5 == 0:
+            if animationTicks % 10 == 0:
                 walkAnime += 1
                 walkAnime %= 4
     else:
