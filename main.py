@@ -268,13 +268,15 @@ def backInTime():
     if len(timeshift) > 100:
         while i < 100:
             timeRev(i)
+            i += 1
     else:
         while i < len(timeshift):
             timeRev(i)
+            i += 1
 
 def timeRev(i):
     player.x = timeshift[-i][0][0]
-    player.x = timeshift[-i][0][1]
+    player.y = timeshift[-i][0][1]
 
 # Creates game screen
 def drawScreen():
