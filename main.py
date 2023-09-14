@@ -33,6 +33,8 @@ walkAnime = 0
 moving = "right"
 animationTicks = 0
 jumps = 0
+timeshiftTime = 0
+shifting = False
 
 # Define colors
 cBlack = (0,0,0)
@@ -264,19 +266,24 @@ def setPlayerPose():
     player.x = clamp(player.x,0,kScreenWidth - (kPlayerRadius - kPlayerOffset * 2))
     
 def backInTime():
-    i = 1
-    if len(timeshift) > 100:
-        while i < 100:
-            timeRev(i)
-            i += 1
-    else:
-        while i < len(timeshift):
-            timeRev(i)
-            i += 1
-
-def timeRev(i):
-    player.x = timeshift[-i][0][0]
-    player.y = timeshift[-i][0][1]
+    global shifting
+    global timeshiftTime
+    global playerPNG 
+    
+    if not shifting:
+        timeshiftTime = len(timeshift) - 1
+        shifting = True
+    
+    if timeshiftTime < 1:
+        buttonMap[py.K_LSHIFT] = False
+        shifting = False
+        return
+     
+    player.x = timeshift[timeshiftTime][0][0]
+    print(timeshift[timeshiftTime][0])
+    player.y = timeshift[timeshiftTime][0][1]
+    timeshiftTime -= 1
+    playerPNG = timeshift[timeshiftTime][1]
 
 # Creates game screen
 def drawScreen():
@@ -285,11 +292,6 @@ def drawScreen():
     window.fill(cBlack)
     
     window.blit(playerPNG,(player.x - kPlayerOffset, player.y))
-    
-    timeshift.append([(player.x - kPlayerOffset, player.y),playerPNG])
-    
-    if len(timeshift) > 100:
-        timeshift.pop(0)
     
     for i in blocks:
         i.draw()
@@ -373,6 +375,13 @@ while True:
         setPlayerPose()
         
         animatePlayer()
+        
+        timeshift.append([(player.x - kPlayerOffset, player.y),playerPNG])
+        
+        if len(timeshift) > 100:
+            timeshift.pop(0)
+            
+        shifting = False
     
     else:
         
