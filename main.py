@@ -19,7 +19,7 @@ kPlayerJumpPower = -5
 kPlayerMaxJumps = 3
 
 # Define block constants
-kBlockRadius = 1
+kBlockRadius = 25
 blockLoc = []
 blocks = []
 
@@ -107,7 +107,7 @@ class block:
     def draw(self):
         # window.blit(blockTexture,(self.x,self.y))
         
-        py.draw.rect(window, cWhite, self.rect)
+        py.draw.rect(window, self.color, self.rect)
 
 # Returns a value clamped to minVal and maxVal
 def clamp(num, minVal, maxVal):
@@ -144,7 +144,7 @@ def jump():
     global moving
     global playerPNG
     
-    if buttonMap[py.K_SPACE] and jumps <= kPlayerMaxJumps:
+    if buttonMap[py.K_SPACE] and jumps < kPlayerMaxJumps:
         jumps = jumps + 1
         buttonMap[py.K_SPACE] = False
         playerAcceleration[1] = kPlayerJumpPower
@@ -230,7 +230,7 @@ def spawnblock():
     location[0] = kBlockRadius * math.floor(location[0] / kBlockRadius)
     location[1] = kBlockRadius * math.floor(location[1] / kBlockRadius)
     blockLoc.append((location[0],location[1]))
-    blocks.append(block(location[0],location[1],kBlockRadius,cWhite))
+    blocks.append(block(location[0],location[1],kBlockRadius,cRed))
 
 # Moves player pose based on acceleration
 def setPlayerPose():
@@ -318,25 +318,25 @@ def animatePlayer():
         if playerAcceleration[0] > 0:
             moving = "right"
             if playerAcceleration[1] < 0:
-                playerPNG = char4r
+                playerPNG = kRCADict[4]
             else:
-                playerPNG = char2r
+                playerPNG = kRCADict[2]
         elif playerAcceleration[0] < 0:
             moving = "left"
             if playerAcceleration[1] < 0:
-                playerPNG = char4l
+                playerPNG = kLCADict[4]
             else:
-                playerPNG = char2l
+                playerPNG = kLCADict[2]
         elif moving == "right":
             if playerAcceleration[1] < 0:
-                playerPNG = char4r
+                playerPNG = kRCADict[4]
             else:
-                playerPNG = char2r
+                playerPNG = kRCADict[2]
         elif moving == "left":
             if playerAcceleration[1] < 0:
-                playerPNG = char4l
+                playerPNG = kLCADict[4]
             else:
-                playerPNG = char2l
+                playerPNG = kLCADict[2]
 
 # Inits the list of blocks
 def initBlocks():
@@ -365,7 +365,7 @@ while True:
 
         setPlayerPose()
         
-        timeshift.append([(player.x - kPlayerOffset, player.y),playerPNG])
+        timeshift.append([(player.x, player.y),playerPNG])
     
     else:
         
