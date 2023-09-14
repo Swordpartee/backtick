@@ -10,7 +10,7 @@ kScreenWidth = 1000
 
 # Define player constants
 kPlayerRadius = 150
-kPlayerOffset = 33
+kPlayerOffset = kPlayerRadius * 0.22
 
 kPlayerSpeed = 0.3
 kMaxPlayerSpeed = 4.5
@@ -19,7 +19,7 @@ kPlayerJumpPower = -5
 kPlayerMaxJumps = 3
 
 # Define block constants
-kBlockRadius = 26
+kBlockRadius = 1
 blockLoc = []
 blocks = []
 
@@ -33,8 +33,6 @@ walkAnime = 0
 moving = "right"
 animationTicks = 0
 jumps = 0
-timeshiftTime = 0
-shifting = False
 
 # Define colors
 cBlack = (0,0,0)
@@ -143,6 +141,8 @@ def move():
 def jump():
     
     global jumps
+    global moving
+    global playerPNG
     
     if buttonMap[py.K_SPACE] and jumps <= kPlayerMaxJumps:
         jumps = jumps + 1
@@ -167,7 +167,7 @@ def applyFric():
                 if playerAcceleration[0] > 0:
                     playerAcceleration[0] = 0
         
-# Check for any resets required each game cycle                
+# Check for any updates required each game cycle                
 def reset():
     
     global jumps
@@ -266,24 +266,13 @@ def setPlayerPose():
     player.x = clamp(player.x,0,kScreenWidth - (kPlayerRadius - kPlayerOffset * 2))
     
 def backInTime():
-    global shifting
-    global timeshiftTime
     global playerPNG 
     
-    if not shifting:
-        timeshiftTime = len(timeshift) - 1
-        shifting = True
-    
-    if timeshiftTime < 1:
-        buttonMap[py.K_LSHIFT] = False
-        shifting = False
-        return
-     
-    player.x = timeshift[timeshiftTime][0][0]
-    print(timeshift[timeshiftTime][0])
-    player.y = timeshift[timeshiftTime][0][1]
-    timeshiftTime -= 1
-    playerPNG = timeshift[timeshiftTime][1]
+    if not len(timeshift) == 0:
+        player.x = timeshift[-1][0][0]
+        player.y = timeshift[-1][0][1]
+        playerPNG = timeshift[-1][1]
+        timeshift.pop(-1)
 
 # Creates game screen
 def drawScreen():
@@ -370,18 +359,13 @@ while True:
     getButtons()
 
     if not buttonMap[py.K_LSHIFT]:
+        animatePlayer()
+        
         calcMovement()
 
         setPlayerPose()
         
-        animatePlayer()
-        
         timeshift.append([(player.x - kPlayerOffset, player.y),playerPNG])
-        
-        if len(timeshift) > 100:
-            timeshift.pop(0)
-            
-        shifting = False
     
     else:
         
