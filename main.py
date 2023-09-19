@@ -35,10 +35,16 @@ animationTicks = 0
 jumps = 0
 
 # Define colors
+cRed = (255,0,0)
+cOrange = (255, 100, 0)
+cYellow = (255,255,0)
+cGreen = (0, 128, 0)
+cCyan = (0,255,255)
+cBlue = (0,0,255)
+cPurple = (128, 0, 128)
 cBlack = (0,0,0)
 cWhite = (255,255,255)
-cBlue = (0,0,255)
-cRed = (255,0,0)
+blockColors = [cRed, cOrange, cYellow, cGreen, cCyan, cBlue, cPurple]
 
 timeshift = []
 
@@ -230,7 +236,7 @@ def spawnblock():
     location[0] = kBlockRadius * math.floor(location[0] / kBlockRadius)
     location[1] = kBlockRadius * math.floor(location[1] / kBlockRadius)
     blockLoc.append((location[0],location[1]))
-    blocks.append(block(location[0],location[1],kBlockRadius,cRed))
+    blocks.append(block(location[0],location[1],kBlockRadius,blockColors[len(blocks) % len(blockColors)]))
 
 # Moves player pose based on acceleration
 def setPlayerPose():
@@ -341,7 +347,7 @@ def animatePlayer():
 # Inits the list of blocks
 def initBlocks():
     for i in blockLoc:
-        blocks.append(block(i[0],i[1],kBlockRadius,cWhite))
+        blocks.append(block(i[0],i[1],kBlockRadius,blockColors[len(blocks) % len(blockColors)]))
 
 # Checks if the player is colliding with a block
 def isColliding():
