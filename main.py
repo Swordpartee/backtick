@@ -23,6 +23,10 @@ kBlockRadius = 25
 blockLoc = []
 blocks = []
 
+# Define spike constants
+spikeLoc = []
+spikes = []
+
 # Define game constants
 kGrav = 0.35
 kFric = 1
@@ -114,6 +118,17 @@ class block:
         # window.blit(blockTexture,(self.x,self.y))
         
         py.draw.rect(window, self.color, self.rect)
+        
+class spike:
+    def __init__(self,x,y,size,color):
+        self.x = x
+        self.y = y
+        self.color = color
+        self.size = size
+        self.points = ((x + kBlockRadius / 2, y), (x, y + kBlockRadius), (x + kBlockRadius, y + kBlockRadius))
+        
+    def draw(self):
+        py.draw.polygon(window, self.color, self.points)
 
 # Returns a value clamped to minVal and maxVal
 def clamp(num, minVal, maxVal):
@@ -205,7 +220,7 @@ def getButtons():
     for event in py.event.get():
         # if quit, quit
         if event.type == py.QUIT:
-            print(stripList(blockLoc))
+            print(stripList(spikeLoc))
             py.quit()
             quit()
             
@@ -220,7 +235,10 @@ def getButtons():
                 buttonMap[event.key] = False
                 
         if event.type == py.MOUSEBUTTONDOWN:
-                spawnblock()
+            if event.button == 1:
+                spawnBlock()
+            else:
+                spawnSpike()
                 
 def stripList(startlist):
     stripedListed = []
@@ -230,13 +248,21 @@ def stripList(startlist):
     
     return(stripedListed)
 
-def spawnblock():
+def spawnBlock():
     loc = py.mouse.get_pos()
     location = [loc[0],loc[1]]
     location[0] = kBlockRadius * math.floor(location[0] / kBlockRadius)
     location[1] = kBlockRadius * math.floor(location[1] / kBlockRadius)
     blockLoc.append((location[0],location[1]))
     blocks.append(block(location[0],location[1],kBlockRadius,blockColors[len(blocks) % len(blockColors)]))
+
+def spawnSpike():
+    loc = py.mouse.get_pos()
+    location = [loc[0],loc[1]]
+    location[0] = kBlockRadius * math.floor(location[0] / kBlockRadius)
+    location[1] = kBlockRadius * math.floor(location[1] / kBlockRadius)
+    spikeLoc.append((location[0], location[1]))
+    spikes.append(spike(location[0],location[1],kBlockRadius,blockColors[len(spikes) % len(blockColors)]))
 
 # Moves player pose based on acceleration
 def setPlayerPose():
@@ -267,6 +293,9 @@ def setPlayerPose():
         elif playerAcceleration[1] < 0:
             player.y = collisionBlock.y + collisionBlock.size
             playerAcceleration[1] = 0
+    if isCollidingDeath():
+        collisionSpike = spikes[player.collidelist(spikes)]
+        if playerAcceleration[1]
                 
     player.y = clamp(player.y,0,kScreenHeight - kPlayerRadius)
     player.x = clamp(player.x,0,kScreenWidth - (kPlayerRadius - kPlayerOffset * 2))
@@ -289,6 +318,9 @@ def drawScreen():
     window.blit(playerPNG,(player.x - kPlayerOffset, player.y))
     
     for i in blocks:
+        i.draw()
+    
+    for i in spikes:
         i.draw()
     
     # Update the window
@@ -345,7 +377,7 @@ def animatePlayer():
                 playerPNG = kLCADict[2]
 
 # Inits the list of blocks
-def initBlocks():
+def initsBlocks():
     for i in blockLoc:
         blocks.append(block(i[0],i[1],kBlockRadius,blockColors[len(blocks) % len(blockColors)]))
 
@@ -356,7 +388,13 @@ def isColliding():
     else:
         return(False)
     
-initBlocks()
+def isCollidingDeath():
+    if player.collidelist(spikes) != 1:
+        return(True)
+    else:
+        return(False)
+    
+initsBlocks()
 
 # Game loop
 while True:
