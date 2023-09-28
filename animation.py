@@ -18,7 +18,7 @@ char2l = py.image.load("char2l.png")
 char3l = py.image.load("char3l.png")
 char4l = py.image.load("char4l.png")
 
-blockSize = (kConstants['blockRadius'],kConstants['blockRadius']blockRadius'])
+blockSize = (kConstants['blockRadius'],kConstants['blockRadius'])
 blockTexture = py.image.load("block.png")
 
 kRCADict = {
