@@ -4,6 +4,9 @@ import pygame as py
 global kConstants
 global buttonMap
 global playerAcceleration
+global player
+global timeshift
+global blocks
 
 # Calls functions to alculate player movement every game tick
 def calcMovement():
