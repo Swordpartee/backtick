@@ -4,10 +4,10 @@ import main
 
 global playerAcceleration
 
-kBlockRadius = main.kBlockRadius
-kPlayerRadius = main.kPlayerRadius
+kConstants['blockRadius'] = main.kConstants['blockRadius']
+kConstants['playerRadius'] = main.kConstants['playerRadius']
 
-playerSize = (kPlayerRadius,kPlayerRadius)
+playerSize = (kConstants['playerRadius'],kConstants['playerRadius'])
 
 char1r = py.image.load("char1r.png")
 char2r = py.image.load("char2r.png")
@@ -18,7 +18,7 @@ char2l = py.image.load("char2l.png")
 char3l = py.image.load("char3l.png")
 char4l = py.image.load("char4l.png")
 
-blockSize = (kBlockRadius,kBlockRadius)
+blockSize = (kConstants['blockRadius'],kConstants['blockRadius']blockRadius'])
 blockTexture = py.image.load("block.png")
 
 kRCADict = {
