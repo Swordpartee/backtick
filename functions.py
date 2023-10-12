@@ -14,13 +14,4 @@ def closeGame():
     quit()
     
 def globalUpdate(buttonMap,player,window):
-    
     player.move(buttonMap)
-    
-    if not player.checkGrounded(window):
-        player.sprit.y += 1
-    
-    player.sprit.y = clamp(player.sprit.y,0,window.height - player.sprit.height)
-    player.sprit.x = clamp(player.sprit.x,0,window.width - player.sprit.width)
-    
-    
