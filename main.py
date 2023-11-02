@@ -6,7 +6,7 @@ FPSClock = py.time.Clock()
 FPS = 60
 
 window = classes.screen(700,1000,(0,0,0))
-player = classes.player(100,100,200,200,0.3,9,0.8,4,-3,(255,255,255))
+player = classes.player(100,100,200,200,2,(255,255,255))
 buttonMap = classes.buttonMap([py.K_LEFT,py.K_RIGHT,py.K_SPACE])
 
 while True:
