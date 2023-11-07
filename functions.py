@@ -1,4 +1,5 @@
 import pygame as py
+import constants
 
 # Returns a value clamped to minVal and maxVal
 def clamp(num, minVal, maxVal):
@@ -9,21 +10,34 @@ def clamp(num, minVal, maxVal):
     else:
         return(num)
 
+# Closes the game
 def closeGame():
     py.quit()
     quit()
-    
+
 def globalUpdate(buttonMap,player,window):
+    """
+    Updates the player's acceleration based on gravity and friction.
     
-    if buttonMap.map[py.K_LEFT]:
-        player.sprit.x -= player.speed
-    if buttonMap.map[py.K_RIGHT]:
-        player.sprit.x += player.speed
+    Args:
+    buttonMap (dict): A dictionary containing the current state of the keyboard buttons.
+    player (Player): An instance of the Player class representing the player.
+    window (pygame.Surface): The game window surface.
+    """
     
+    # Update vertical acceleration based on gravity
     if not player.checkGrounded(window):
-        player.sprit.y += 1
-    
-    player.sprit.y = clamp(player.sprit.y,0,window.height - player.sprit.height)
-    player.sprit.x = clamp(player.sprit.x,0,window.width - player.sprit.width)
+        player.acceleration[1] += constants.GRAVITY
+    else:
+        player.acceleration[1] = 0
+        player.jumps = 0
+        
+    # Update horizontal acceleration based on friction
+    if player.acceleration[0] > constants.Friction:
+        player.acceleration[0] -= constants.Friction
+    elif player.acceleration[0] < -constants.Friction:
+        player.acceleration[0] += constants.Friction  
+    else:
+        player.acceleration[0] = 0
     
     
