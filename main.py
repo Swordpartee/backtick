@@ -15,9 +15,19 @@ window = classes.Screen(constants.SCREEN_HEIGHT, constants.SCREEN_WIDTH, constan
 player = classes.Player(constants.K_PLAYER_SIZE, constants.K_PLAYER_SIZE, 0, 0, constants.JUMP_POWER, constants.PLAYER_SPEED, constants.PLAYER_MAX_SPEED, constants.C_RED)
 buttonMap = classes.ButtonMap([py.K_LEFT, py.K_RIGHT, py.K_SPACE])
 
+deltaList = []
+
 while True:
     # Limit the game to 240 FPS
-    FPSClock.tick(constants.FPS)
+    delatTime = FPSClock.tick(constants.FPS) / 4.8
+    deltaList.append(delatTime)
+    i = 0
+    deltaAverage = 0
+    for delta in deltaList:
+        i += 1
+        deltaAverage += delta
+    deltaAverage /= i
+    print(deltaAverage)
     
     # Update the state of the keyboard buttons
     buttonMap.update()
@@ -26,7 +36,7 @@ while True:
     functions.globalUpdate(buttonMap, player, window)
     
     # Move the player
-    player.move(buttonMap, window, blocks)
+    player.move(buttonMap, window, blocks, delatTime)
     
     # Draw the player and update the display
-    window.update(player, blocks)
+    window.update(player, blocks, buttonMap)

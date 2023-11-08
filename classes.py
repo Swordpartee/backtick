@@ -3,6 +3,7 @@ import functions
 import constants
 import math
 
+
 class Screen:
     """
     A class representing the game screen.
@@ -20,26 +21,29 @@ class Screen:
         self.backgroundColor = backgroundColor
         self.window = py.display.set_mode((width, height))
 
-    def update(self, player, blocks):
+    def update(self, player, blocks, buttonMap):
         self.window.fill(self.backgroundColor)
         for block in blocks:
             block.draw(self)
-        player.draw(self)
+        player.draw(self, buttonMap)
         py.display.update()
-
+        
 
 class Player:
     """
     A class representing a player in a game.
 
     Attributes:
-        color (tuple): The color of the player's sprite.
+        moving (str): The direction the player is moving.
+        walkAnime (float): The current frame of the player's walking animation.
+        playerImage (pygame.Surface): The image of the player's sprite.
         speed (float): The player's current speed.
         maxSpeed (float): The maximum speed the player can reach.
         sprite (pygame.Rect): The player's sprite.
         jumps (int): The number of times the player has jumped.
         jumpPower (float): The power of the player's jump.
         acceleration (list): The player's current acceleration in the x and y directions.
+        PNGDict (dict): A dictionary containing the player's sprites for each direction.
     """
 
     def __init__(self, height, width, x, y, jumpPower, speed, maxSpeed, playerImage):
@@ -54,7 +58,7 @@ class Player:
             jumpPower (float): The power of the player's jump.
             speed (float): The player's current speed.
             maxSpeed (float): The maximum speed the player can reach.
-            color (tuple): The color of the player's sprite.
+            playerImage (pygame.Surface): The image of the player's sprite.
         """
         self.moving = "right"
         self.walkAnime = 1
@@ -65,7 +69,7 @@ class Player:
         self.jumps = 0
         self.jumpPower = jumpPower
         self.acceleration = [0, 0]
-        playerSize = (50, 50)
+        playerSize = (width, height)
 
         char1r = py.image.load("char1r.png")
         char2r = py.image.load("char2r.png")
@@ -76,33 +80,41 @@ class Player:
         char3l = py.image.load("char3l.png")
         char4l = py.image.load("char4l.png")
 
-        self.PNGDict = {"right" : [
+        self.PNGDict = {"right": [
             py.transform.scale(char1r, playerSize),
             py.transform.scale(char2r, playerSize),
             py.transform.scale(char3r, playerSize),
             py.transform.scale(char4r, playerSize)
-        ],"left" : [
+        ], "left": [
             py.transform.scale(char1l, playerSize),
             py.transform.scale(char2l, playerSize),
             py.transform.scale(char3l, playerSize),
             py.transform.scale(char4l, playerSize)
         ]}
-        
-    def move(self, buttonMap, window, blocks):
+
+    def move(self, buttonMap, window, blocks, deltaTime):
         """
         Updates the position of the sprite based on user input and game physics.
 
         Args:
             buttonMap (ButtonMap): An object that maps keyboard buttons to their current state.
             window (pygame.Surface): The game window surface.
+            blocks (list): A list of Block objects representing the game's environment.
 
         Returns:
             None
         """
-        if buttonMap.map[py.K_RIGHT] and self.acceleration[0] < self.maxSpeed:
-            self.acceleration[0] += self.speed
-        elif buttonMap.map[py.K_LEFT] and self.acceleration[0] > -self.maxSpeed:
-            self.acceleration[0] -= self.speed
+        if buttonMap.map[py.K_RIGHT]:
+            if self.acceleration[0] < self.maxSpeed:
+                self.acceleration[0] += self.speed
+            else:
+                self.acceleration[0] = self.maxSpeed
+                
+        elif buttonMap.map[py.K_LEFT]:
+            if self.acceleration[0] > -self.maxSpeed:
+                self.acceleration[0] -= self.speed
+            else:
+                self.acceleration[0] = -self.maxSpeed
         else:
             self.acceleration[0] = 0
 
@@ -111,7 +123,7 @@ class Player:
             self.acceleration[1] = -self.jumpPower
             self.jumps += 1
 
-        self.sprite.x += self.acceleration[0]
+        self.sprite.x += self.acceleration[0] * deltaTime
         for block in blocks:
             if block.sprite.colliderect(self.sprite):
                 if self.acceleration[0] > 0:
@@ -120,8 +132,8 @@ class Player:
                 elif self.acceleration[0] < 0:
                     self.sprite.x = block.sprite.x + block.sprite.width
                     self.acceleration[0] = 0
-        
-        self.sprite.y += self.acceleration[1]
+
+        self.sprite.y += self.acceleration[1] * deltaTime
         for block in blocks:
             if block.sprite.colliderect(self.sprite):
                 if self.acceleration[1] > 0:
@@ -134,12 +146,13 @@ class Player:
 
         self.clampLocation(window)
 
-    def draw(self, window):
+    def draw(self, window, buttonMap):
         """
         Draws the player's sprite on the game window.
 
         Args:
             window (pygame.Surface): The game window.
+            buttonMap (ButtonMap): An object that maps keyboard buttons to their current state.
 
         Returns:
             None
@@ -147,25 +160,24 @@ class Player:
         if self.acceleration[0] > 0:
             self.moving = "right"
         elif self.acceleration[0] < 0:
-            self.moving = "left"   
-        
-        if self.acceleration[0] == 0:
-            playerPNG = self.PNGDict[self.moving][0]
-            
-        elif self.checkGrounded(window):
+            self.moving = "left"
+
+        if self.checkGrounded(window) and (buttonMap.map[py.K_LEFT] or buttonMap.map[py.K_RIGHT]):
             self.walkAnime += 1 / constants.PLAYER_ANIMATION_SPEED
             playerPNG = self.PNGDict[self.moving][math.floor(self.walkAnime) % 4]
-            
-        else:
+
+        elif not self.checkGrounded(window):
             if self.acceleration[1] < 0:
                 i = 3
             else:
-                i = 1            
+                i = 1
             playerPNG = self.PNGDict[self.moving][i]
-                
-             
+
+        else:
+            playerPNG = self.PNGDict[self.moving][0]
+
         window.window.blit(playerPNG, (self.sprite.x, self.sprite.y))
-        
+
     def clampLocation(self, window):
         """
         Keeps the player's sprite within the game window.

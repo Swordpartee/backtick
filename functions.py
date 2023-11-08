@@ -23,6 +23,7 @@ def clamp(num, minVal, maxVal):
 
 # Closes the game
 def closeGame():
+    
     py.quit()
     quit()
 
